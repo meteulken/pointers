@@ -1,43 +1,56 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <semaphore.h>
 
 int balance = 0;
-pthread_mutex_t mutex;
+sem_t *semaphore;
 
-void* deposit(void *amount) {
+void *hesap(void *ammount)
+{
+    int a = 0;
+    int *donusum = (int *)ammount;
+    sem_wait(semaphore);
 
-	pthread_mutex_lock(&mutex);
+    int local_balance = balance;
 
-    	int account_balance = balance;
-    
-    	account_balance += *((int *) amount);
-    
-    	usleep(25000);
-    
-    	balance = account_balance;
-  	pthread_mutex_unlock(&mutex);
-    	return NULL;
+    local_balance += *donusum;
+    usleep(25000);
+    balance = local_balance;
+    while(1)
+        a = 5;
+    sem_post(semaphore);
+
+    return NULL;
 }
 
-int main() {
+int main()
+{
+    printf("Baslangic: %d\n", balance);
 
-    	printf("Before: %d\n", balance);
-  	pthread_mutex_init(&mutex, NULL);
-    	pthread_t thread1;
-    	pthread_t thread2;
+    // Create a named semaphore
+    semaphore = sem_open("/my_semaphore", O_CREAT, 0666, 1);
 
-    	int deposit1 = 300;
-    	int deposit2 = 200;
+    pthread_t thread;
+    pthread_t thread2;
 
-    	pthread_create(&thread1, NULL, deposit, (void*) &deposit1);
-    	pthread_create(&thread2, NULL, deposit, (void*) &deposit2);
+    int account1 = 300;
+    int account2 = 500;
 
-    	pthread_join(thread1, NULL);
-    	pthread_join(thread2, NULL);
- 	pthread_mutex_destroy(&mutex);
+    pthread_create(&thread2, NULL, hesap, (void *)&account1);
+    pthread_create(&thread, NULL, hesap, (void *)&account2);
+    pthread_join(thread2, NULL);
+    pthread_join(thread, NULL);
 
-    	printf("After: %d\n", balance);
+    while(1);
 
-    	return 0;
+    // Close and unlink the named semaphore
+    sem_close(semaphore);
+    sem_unlink("/my_semaphore");
+
+    printf("Son Durum: %d\n", balance);
+
+    return 0;
 }
