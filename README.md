@@ -1,7 +1,5 @@
 # pointers
 
-## Checkup
-
 * Read ve Open Fonksiyonu Kullanımı
 * Va_args fonksiyonu ile çoklu argüman kullanımı
 * Bağlı liste oluşturma listenin sonuna ve başına eleman ekleme
